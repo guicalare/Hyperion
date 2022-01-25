@@ -52,6 +52,13 @@ class Hyperion():
             lat = lat,
             marker = {'size': 10},
             line = dict(width = 4.5, color = color)))
+    def add_point_map(self, lat, long, color, label, size):
+         self.route_map.add_trace(go.Scattermapbox(
+            name = label,
+            mode = "markers",
+            lon = [long],
+            lat = [lat],
+            marker = {'size':size, 'color':color}))
     def plot_map(self, lat_center, long_center, zoom):
         self.route_map.update_layout(mapbox_style="stamen-terrain",
             mapbox_center_lat = 30, mapbox_center_lon=-80)
@@ -60,6 +67,7 @@ class Hyperion():
                             'center': {'lat': lat_center, 
                             'lon': long_center},
                             'zoom': zoom})
+        self.route_map.update_layout(legend_title='<b> Rutas </b>')
         self.route_map.show()
     def cross_distances_to_network(self, data):
         node_1, node_2, distances = [], [], []
@@ -69,10 +77,10 @@ class Hyperion():
                     node_1.append(city1)
                     node_2.append(city2)
                     distances.append(distance.distance(cords1, cords2).km)
-        return DataFrame(list(zip(node_1, node_2, distances)), columns=["Node_1", "Node_2", "Distance"])
+        return DataFrame(list(zip(node_1, node_2, distances)), columns=["Node_1", "Node_2", "weight"])
     def cross_distances_dict_to_network(self, data):
         temp = self.cross_distances_to_network(data)
-        return nx.from_pandas_edgelist(temp, source="Node_1", target="Node_2", edge_attr="Distance")
+        return nx.from_pandas_edgelist(temp, source="Node_1", target="Node_2", edge_attr="weight")
     def minimal_tree(self, data):
         temp = self.cross_distances_dict_to_network(data)
         return nx.minimum_spanning_tree(temp).edges(data=True)
@@ -80,6 +88,9 @@ class Hyperion():
         minimal_path = self.minimal_tree(data)
         for path in minimal_path:
             route = self.get_node_route(data[path[0]], data[path[1]])
+            self.add_point_map(data[path[0]][0], data[path[0]][1], "red", "Inicio " + path[0], 12)
+            self.add_point_map(data[path[1]][0], data[path[1]][1], "red", "Fin " + path[1], 12)
             lat, long = self.node_list_path_to_lat_lon(route)
             self.add_route_to_map(lat, long, "blue", path[0] + " - " + path[1])
         self.plot_map(lat_center, long_center, zoom)
+        self.route_map = go.Figure()
