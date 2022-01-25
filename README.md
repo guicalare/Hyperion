@@ -23,8 +23,8 @@ datos.plot_map(LATITUD_VISTA_CENTRADA,, LONGITUD_VISTA_CENTRADA, ZOOM_NUMERICO)
 cords = {
         "Punto 1":[lat_1, long_1],
         "Punto 2":[lat_2, long_2],
-        "Punto 3":[lat_3, long_3],
-        "Punto 4":[lat_4, long_4]
+        ...,
+        "Punto n":[lat_n, long_n]
 }
 
 data = Hyperion("<NOMBRE DE UNA ZONA GEOGRAFICA>")
