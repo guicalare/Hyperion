@@ -1,7 +1,7 @@
 # Hyperion
 Optimizador de rutas geograficas 
 
-# Creacion de mapas automatico
+# Creacion de mapas automatico (MANUAL)
 
 ```python
 datos = Hyperion("<NOMBRE DE UNA ZONA GEOGRAFICA>")
@@ -16,4 +16,17 @@ ruta = datos.get_node_route((LATITUD_ORIGEN_N, LONGITUD_ORIGEN_N), (LATITUD_DEST
 lat, long = datos.node_list_path_to_lat_lon(ruta)
 datos.add_route_to_map(lat, long, "blue", "ruta N")
 datos.plot_map(LATITUD_VISTA_CENTRADA,, LONGITUD_VISTA_CENTRADA, ZOOM_NUMERICO)
+```
+# Creacion de mapas automatico "OPTIMO"
+
+```python
+cords = {
+        "Punto 1":[lat_1, long_1],
+        "Punto 2":[lat_2, long_2],
+        "Punto 3":[lat_3, long_3],
+        "Punto 4":[lat_4, long_4]
+}
+
+data = Hyperion("<NOMBRE DE UNA ZONA GEOGRAFICA>")
+data.optimal_map(cords, lat_central, long_central, nivel_zoom)
 ```
