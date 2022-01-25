@@ -2,11 +2,16 @@ import osmnx as ox
 import networkx as nx
 import plotly.graph_objects as go
 import numpy as np
+from geopy import distance
+from pandas import DataFrame
+import warnings
+
+warnings.filterwarnings("ignore")
 
 class Hyperion():
     def __init__(self, area_name, type_search = "drive"):
         self.geo_data = ox.graph_from_place(area_name, network_type = type_search)
-        self.route_map = fig = go.Figure()
+        self.route_map = go.Figure()
     def get_node_route(self, origin_point, destination_point):
         origin_node = ox.get_nearest_node(self.geo_data, origin_point) 
         destination_node = ox.get_nearest_node(self.geo_data, destination_point)
@@ -56,4 +61,25 @@ class Hyperion():
                             'lon': long_center},
                             'zoom': zoom})
         self.route_map.show()
-
+    def cross_distances_to_network(self, data):
+        node_1, node_2, distances = [], [], []
+        for city1, cords1 in data.items():
+            for city2, cords2 in cords.items():
+                if city1 != city2:
+                    node_1.append(city1)
+                    node_2.append(city2)
+                    distances.append(distance.distance(cords1, cords2).km)
+        return DataFrame(list(zip(node_1, node_2, distances)), columns=["Node_1", "Node_2", "Distance"])
+    def cross_distances_dict_to_network(self, data):
+        temp = self.cross_distances_to_network(data)
+        return nx.from_pandas_edgelist(temp, source="Node_1", target="Node_2", edge_attr="Distance")
+    def minimal_tree(self, data):
+        temp = self.cross_distances_dict_to_network(data)
+        return nx.minimum_spanning_tree(temp).edges(data=True)
+    def optimal_map(self, data, lat_center, long_center, zoom):
+        minimal_path = self.minimal_tree(data)
+        for path in minimal_path:
+            route = self.get_node_route(data[path[0]], data[path[1]])
+            lat, long = self.node_list_path_to_lat_lon(route)
+            self.add_route_to_map(lat, long, "blue", path[0] + " - " + path[1])
+        self.plot_map(lat_center, long_center, zoom)
