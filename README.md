@@ -30,3 +30,12 @@ cords = {
 data = Hyperion("<NOMBRE DE UNA ZONA GEOGRAFICA>")
 data.optimal_map(cords, lat_central, long_central, nivel_zoom)
 ```
+# Creacion de mapas de elevaciones REQUIERE OPEN ELEVATION
+
+[Añadir documentacion y demas]
+
+```python
+datos = Hyperion("<NOMBRE DE UNA ZONA GEOGRAFICA>")
+datos.open_elevation_data("http://192.168.1.120")
+datos.elevation_map("http://192.168.1.120")
+```
