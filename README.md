@@ -36,6 +36,6 @@ data.optimal_map(cords, lat_central, long_central, nivel_zoom)
 
 ```python
 datos = Hyperion("<NOMBRE DE UNA ZONA GEOGRAFICA>")
-datos.open_elevation_data("http://192.168.1.120")
-datos.elevation_map("http://192.168.1.120")
+datos.open_elevation_data("http://192.168.xxx.xxx")
+datos.elevation_map("http://192.168.xxx.xxx")
 ```
