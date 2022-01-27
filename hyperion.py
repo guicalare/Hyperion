@@ -5,6 +5,11 @@ import numpy as np
 from geopy import distance
 from pandas import DataFrame
 import warnings
+import requests
+from requests.structures import CaseInsensitiveDict
+import copy
+import plotly.express as px
+import json
 
 warnings.filterwarnings("ignore")
 
@@ -60,7 +65,7 @@ class Hyperion():
             lat = [lat],
             marker = {'size':size, 'color':color}))
     def plot_map(self, lat_center, long_center, zoom):
-        self.route_map.update_layout(mapbox_style="stamen-terrain",
+        self.route_map.update_layout(mapbox_style="open-street-map",
             mapbox_center_lat = 30, mapbox_center_lon=-80)
         self.route_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0},
                         mapbox = {
@@ -94,3 +99,40 @@ class Hyperion():
             self.add_route_to_map(lat, long, "blue", path[0] + " - " + path[1])
         self.plot_map(lat_center, long_center, zoom)
         self.route_map = go.Figure()
+    def open_elevation_data(self, server_url, chunk_size = 2000):
+        url = f"{server_url}/api/v1/lookup"
+        headers = CaseInsensitiveDict()
+        headers["Accept"] = "application/json"
+        headers["Content-Type"] = "application/json"
+        coordenadas = {'locations':[]}
+        responses = []
+        for node in range(len(self.geo_data)):
+            node_id = list(self.geo_data.nodes)[node]
+            y = self.geo_data.nodes[node_id]["y"]
+            x = self.geo_data.nodes[node_id]["x"]
+            coordenadas['locations'].append({'latitude':y, 'longitude':x})
+        split_requests = [coordenadas["locations"][i:i+chunk_size] for i in range(0, len(coordenadas["locations"]), chunk_size)]
+        for data_chunck in split_requests:
+            r = requests.post(url, headers=headers, data=json.dumps({"locations":data_chunck})).json()
+            responses = responses + r["results"]
+        for node in range(len(self.geo_data)):
+            node_id = list(self.geo_data.nodes)[node]
+            self.geo_data.nodes[node_id]["elevation"] = responses[node]["elevation"]
+    def elevation_map(self, url):
+        self.open_elevation_data(url)
+        lat, long, ele = [], [], []
+        df = DataFrame()
+        for node in range(len(self.geo_data)):
+            node_id = list(self.geo_data.nodes)[node]
+            lat.append(self.geo_data.nodes[node_id]["y"])
+            long.append(self.geo_data.nodes[node_id]["x"])
+            ele.append(self.geo_data.nodes[node_id]["elevation"])
+        df["lat"] = lat
+        df["lon"] = long
+        df["elevation"] = ele 
+        fig = px.scatter_mapbox(df, lat="lat", lon="lon", hover_data=["elevation"],
+                                color="elevation", zoom=11)
+        fig.update_layout(
+            mapbox_style="open-street-map")
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        fig.show()
